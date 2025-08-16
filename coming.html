@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Site Maintenance</title>
+  <style>
+    :root {
+      --bg: #0f172a;        /* slate-900 */
+      --panel: #111827;     /* gray-900 */
+      --accent: #22d3ee;    /* cyan-400 */
+      --accent-2: #a78bfa;  /* violet-400 */
+      --text: #e5e7eb;      /* gray-200 */
+      --muted: #94a3b8;     /* slate-400 */
+      --ok: #34d399;        /* emerald-400 */
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(34,211,238,.12), transparent 60%),
+        radial-gradient(1000px 500px at 110% 10%, rgba(167,139,250,.12), transparent 60%),
+        var(--bg);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 720px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.4);
+      backdrop-filter: blur(6px);
+    }
+    .badge {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(15,23,42,.6);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .title {
+      font-weight: 800;
+      font-size: clamp(26px, 4.2vw, 40px);
+      line-height: 1.1;
+      margin: 14px 0 4px;
+      letter-spacing: .2px;
+    }
+    .gradient {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 15px;
+      margin: 0 0 18px;
+    }
+    .countdown {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 8px;
+    }
+    .unit {
+      background: rgba(17,24,39,.85);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .num {
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      font-size: clamp(26px, 5vw, 36px);
+      line-height: 1;
+    }
+    .label {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .footer {
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .live {
+      color: var(--ok);
+      font-weight: 700;
+    }
+    .small {
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    @media (max-width: 520px) {
+      .countdown { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="card" role="main" aria-label="Maintenance Notice">
+    <span class="badge" aria-live="polite" aria-atomic="true">Maintenance</span>
+
+    <h1 class="title">
+      SITE SERVER IN <span class="gradient">MAINTENANCE</span>
+    </h1>
+
+    <p class="subtitle">
+      We’ll be live by <strong>today at 10:00 PM</strong>. Thanks for your patience!
+    </p>
+
+    <section class="countdown" aria-label="Countdown to today 10 PM">
+      <div class="unit" aria-label="Days">
+        <div class="num" id="d">0</div>
+        <div class="label">Days</div>
+      </div>
+      <div class="unit" aria-label="Hours">
+        <div class="num" id="h">0</div>
+        <div class="label">Hours</div>
+      </div>
+      <div class="unit" aria-label="Minutes">
+        <div class="num" id="m">0</div>
+        <div class="label">Minutes</div>
+      </div>
+      <div class="unit" aria-label="Seconds">
+        <div class="num" id="s">0</div>
+        <div class="label">Seconds</div>
+      </div>
+    </section>
+
+    <p class="footer" id="status" role="status"></p>
+    <p class="small" id="targetNote"></p>
+  </main>
+
+  <script>
+    // Helper: get today's 10:00 PM in the visitor's local timezone
+    function getTodayTenPM() {
+      const now = new Date();
+      const target = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        22, 0, 0, 0 // 22:00:00 local time
+      );
+      return target;
+    }
+
+    const d = document.getElementById('d');
+    const h = document.getElementById('h');
+    const m = document.getElementById('m');
+    const s = document.getElementById('s');
+    const statusEl = document.getElementById('status');
+    const targetNote = document.getElementById('targetNote');
+
+    const target = getTodayTenPM();
+
+    // Show a friendly note of the exact local target time & date
+    try {
+      const fmtDate = new Intl.DateTimeFormat(undefined, {
+        weekday: 'short', year: 'numeric', month: 'short', day: '2-digit'
+      }).format(target);
+      const fmtTime = new Intl.DateTimeFormat(undefined, {
+        hour: 'numeric', minute: '2-digit'
+      }).format(target);
+      targetNote.textContent = `Target: ${fmtDate} at ${fmtTime} (your local time).`;
+    } catch (e) {
+      targetNote.textContent = '';
+    }
+
+    function update() {
+      const now = new Date().getTime();
+      const t = target.getTime();
+      const diff = t - now;
+
+      if (diff <= 0) {
+        d.textContent = '0';
+        h.textContent = '0';
+        m.textContent = '0';
+        s.textContent = '0';
+        statusEl.innerHTML = '<span class="live">We’re live!</span>';
+        clearInterval(timer);
+        return;
+      }
+
+      const sec = Math.floor(diff / 1000);
+      const days = Math.floor(sec / 86400);
+      const hours = Math.floor((sec % 86400) / 3600);
+      const mins = Math.floor((sec % 3600) / 60);
+      const secs = sec % 60;
+
+      d.textContent = String(days);
+      h.textContent = String(hours).padStart(2, '0');
+      m.textContent = String(mins).padStart(2, '0');
+      s.textContent = String(secs).padStart(2, '0');
+
+      statusEl.textContent = 'Counting down to today 10:00 PM…';
+    }
+
+    // If it's already past 10 PM today, just show "We’re live!"
+    if (new Date().getTime() >= target.getTime()) {
+      d.textContent = '0';
+      h.textContent = '0';
+      m.textContent = '0';
+      s.textContent = '0';
+      statusEl.innerHTML = '<span class="live">We’re live!</span>';
+    } else {
+      update();
+      var timer = setInterval(update, 1000);
+    }
+  </script>
+</body>
+</html>
